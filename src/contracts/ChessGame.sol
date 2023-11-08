@@ -10,7 +10,7 @@ contract ChessGame {
 
     mapping(bytes32 => GameTypes.PieceVerifierType) pieceVerifiers;
 
-    // Keep the traditional notation so it's to know what's going on
+    // Keep the traditional notation so it's easy to know what's going on
     address public playerWhite;
     address public playerBlack;
 
