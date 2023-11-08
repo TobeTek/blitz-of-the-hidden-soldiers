@@ -2,6 +2,11 @@
   "name": "hardhat-project",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^3.0.0",
-    "hardhat": "^2.19.0"
+    "hardhat": "^2.19.0",
+    "tsconfig-paths": "^4.2.0"
+  },
+  "dependencies": {
+    "circom_tester": "^0.0.20",
+    "circomlib": "^2.0.5"
   }
 }

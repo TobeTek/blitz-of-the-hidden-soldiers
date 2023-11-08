@@ -57,7 +57,8 @@ contract ChessGame {
             playerHasPiece(msg.sender, move.pieceId),
             "Player does not have a piece with this ID"
         );
-        
+        // NOTE: After the start of the game, players can no longer modify
+        // information about their piece, beyond it's public commitment and position
         ChessTypes.Piece storage piece = piecePositions[msg.sender][move.pieceId];
         PieceVerifier verifier = PieceVerifier(pieceVerifiers[piece.pieceType].pieceVerifierContractAddress);
         verifier.verifyProof();
