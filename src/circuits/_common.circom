@@ -62,27 +62,37 @@ template IsBoardPositionEqual(){
     signal input position2[2];
     signal output out;
 
-    component positionIsEqual = [IsEqual(), IsEqual()];
-    positionIsEqual[0].in[0] = position1[0];
-    positionIsEqual[0].in[1] = position2[0];
+    component positionIsEqual[2];
+    positionIsEqual[0] = IsEqual();
+    positionIsEqual[1] = IsEqual();
 
-    positionIsEqual[1].in[0] = position1[1];
-    positionIsEqual[1].in[1] = position2[1];
+    positionIsEqual[0].in[0] <== position1[0];
+    positionIsEqual[0].in[1] <== position2[0];
+
+    positionIsEqual[1].in[0] <== position1[1];
+    positionIsEqual[1].in[1] <== position2[1];
 
     // Undefined coordinates can never be equal
     // A single undefined coordinate means there can
     // not be equality
-    component positionIsUndefined[2] = [IsEqual(), IsEqual()];
-    positionIsUndefined.in[0] <== position1[0];
-    positionIsUndefined.in[1] <== -1;
+    component positionIsUndefined[2];
+    positionIsUndefined[0] = IsEqual();
+    positionIsUndefined[1] = IsEqual();
 
-    positionIsUndefined.in[0] <== position1[1];
-    positionIsUndefined.in[1] <== -1;
+    positionIsUndefined[0].in[0] <== position1[0];
+    positionIsUndefined[0].in[1] <== -1;
+
+    positionIsUndefined[1].in[0] <== position1[1];
+    positionIsUndefined[1].in[1] <== -1;
 
     component notIsUndefinedPosition = NOT();
-    notIsUndefinedPosition.in <== positionIsUndefined[0].out & positionIsUndefined[1].out;
-
-    out <== positionIsEqual[0].out & positionIsEqual[1].out & notIsUndefinedPosition.out;
+    notIsUndefinedPosition.in <== (
+        positionIsUndefined[0].out
+        * positionIsUndefined[1].out
+    );
+    
+    signal equalPosition <== positionIsEqual[0].out * positionIsEqual[1].out;
+    out <== equalPosition * notIsUndefinedPosition.out;
 }
 
 // making sure there aren't two pieces of the same player in the same position
@@ -92,11 +102,34 @@ template CheckDuplicatePiecePositions(){
     signal input piecePositions[MAX_PIECES_PER_PLAYER][2];
     signal output out;
 
+    component positionEqual[MAX_PIECES_PER_PLAYER][MAX_PIECES_PER_PLAYER];
+
+    for(var i = 0; i < MAX_PIECES_PER_PLAYER; i++){
+        for(var j = 0; j < MAX_PIECES_PER_PLAYER; j++){
+            positionEqual[i][j] = IsBoardPositionEqual();
+            positionEqual[i][j].position1 <== piecePositions[i];
+            positionEqual[i][j].position2 <== piecePositions[j];
+        } 
+    }
+
+    signal duplicatePositions[MAX_PIECES_PER_PLAYER * MAX_PIECES_PER_PLAYER + 1];
+    duplicatePositions[0] <== 1;
+    var duplicatePositionsIndx = 1;
+    
     for(var i = 0; i < MAX_PIECES_PER_PLAYER; i++){
         for(var j = 0; j < MAX_PIECES_PER_PLAYER; j++){
             if(i != j){
-                log("Hello");
+                duplicatePositions[duplicatePositionsIndx] <== (
+                    duplicatePositions[duplicatePositionsIndx - 1] * positionEqual[i][j].out
+                );
             }
+            else {
+                // The same piece should be ignored when checking for duplicates
+                duplicatePositions[duplicatePositionsIndx] <== 0;
+            }
+            duplicatePositionsIndx++;
         } 
     }
+
+    out <== duplicatePositions[MAX_PIECES_PER_PLAYER * MAX_PIECES_PER_PLAYER - 1];   
 }
