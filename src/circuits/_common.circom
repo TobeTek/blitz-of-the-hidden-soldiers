@@ -49,27 +49,29 @@ template IsLegalBoardPosition(){
     var MAX_BOARD_INDEX[2] = [7, 7];
     var MIN_BOARD_INDEX[2] = [0, 0];
 
+    var BITSIZE = 64;
+
     signal input position[2];
     signal output out;
     
     // Position can not exceed (be larger than) max board size
     component maxBoardPositions[2];
 
-    maxBoardPositions[0] = LessThan();
+    maxBoardPositions[0] = LessThan(BITSIZE);
     maxBoardPositions[0].a <== position[0] + 1;
     maxBoardPositions[0].b <== MAX_BOARD_INDEX[0];
     
-    maxBoardPositions[1] = LessThan();
+    maxBoardPositions[1] = LessThan(BITSIZE);
     maxBoardPositions[1].a <== position[1] + 1;
     maxBoardPositions[1].b <== MAX_BOARD_INDEX[1];
 
     // Position can not exceed (be smaller than) min board size
     component minBoardPositions[2];
-    minBoardPositions[0] = GreaterThan();
+    minBoardPositions[0] = GreaterThan(BITSIZE);
     minBoardPositions[0].a <== position[0] + 1;
     minBoardPositions[0].b <== MIN_BOARD_INDEX[0];
 
-    minBoardPositions[1] = GreaterThan();
+    minBoardPositions[1] = GreaterThan(BITSIZE);
     minBoardPositions[1].a <== position[1] + 1;
     minBoardPositions[1].b <== MIN_BOARD_INDEX[1];
 

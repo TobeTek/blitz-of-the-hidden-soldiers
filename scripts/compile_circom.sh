@@ -14,6 +14,6 @@ rm -rf compiled_circom
 mkdir -p compiled_circom
 
 # Find .circom files, excluding those starting with an underscore
-find src/circuits -type f -name "*.circom" -not -name "_*" | while read -r file; do
+find src/circuits -type  f -name "*.circom" -not -name "_*" | while read -r file; do
     process_file "$file"
 done

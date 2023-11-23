@@ -1,8 +1,15 @@
 pragma circom  2.0.0;
 
-include "./_common.circom";
-include "../../node_modules/circomlib/circuits/comparators.circom";
 // include "https://github.com/iden3/circomlib/blob/master/circuits/comparators.circom";
+include "../../node_modules/circomlib/circuits/comparators.circom";
+include "../../node_modules/circomlib/circuits/mimc.circom";
+
+include "_common.circom";
+include "./pieces/_Pawn.circom";
+include "./pieces/_Rook.circom";
+include "./pieces/_Bishop.circom";
+include "./pieces/_King.circom";
+include "./pieces/_Queen.circom";
 
 template PieceRange() {
     var BOARD_WIDTH = 8;
@@ -42,7 +49,7 @@ template HashPieceCommitment(){
 
     signal output out;
 
-    component mimcCommitment = MultiMiMC7(4);
+    component mimcCommitment = MultiMiMC7(4, 2);
     mimcCommitment.in[0] <== pieceId;
     mimcCommitment.in[1] <== pieceType;
     mimcCommitment.in[2] <== piecePosition[0];
@@ -58,7 +65,7 @@ template PieceMotion() {
     var BOARD_WIDTH = 8;
     var BOARD_HEIGHT = 8;
 
-    signal public input prevPublicCommitment;
+    signal input prevPublicCommitment; // public
     signal input pieceId;
     signal input pieceType;
     signal input pieceInitialPosition[2];
@@ -83,7 +90,7 @@ template PieceMotion() {
     pieceRange.out[targetRow][targetCol] === 1;
     
     // Calculate new commitment
-    component pieceCommitment = pieceCommitment();
+    component pieceCommitment = HashPieceCommitment();
     pieceCommitment.pieceId <== pieceId;
     pieceCommitment.pieceType <== pieceType;
     pieceCommitment.piecePosition <== pieceInitialPosition;

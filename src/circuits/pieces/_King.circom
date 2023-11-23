@@ -1,13 +1,10 @@
 pragma circom  2.0.0;
 
-include "./_common.circom";
-include "../../node_modules/circomlib/circuits/comparators.circom";
-
-// Determine the squares that are legal for a knight piece
+// Determine the squares that are legal for a king piece
 // considering it's initial position as well.
 // The result is a 2D array of booleans (0 or 1), indicating if a square
 // can be moved to or not.
-template Knight(BOARD_WIDTH, BOARD_HEIGHT, KING_PIECE_TYPE){
+template King(BOARD_WIDTH, BOARD_HEIGHT, KING_PIECE_TYPE){
     signal input pieceType;
     signal input piecePosition[2];
 
@@ -20,30 +17,8 @@ template Knight(BOARD_WIDTH, BOARD_HEIGHT, KING_PIECE_TYPE){
             positions[row][col] = 0;
         }
     }
-
-    var noMoves = 8;
-    var moves[noMoves][2] = [
-        [2, 1],
-        [2, -1],
-        [-2, 1],
-        [-2, -1],
-        [1, 2],
-        [1, -2],
-        [-1, 2],
-        [-1, -2],
-    ]
-
-    for (var i = 0; i < noMoves; i++){
-        var move = moves[i];
-        var row = piecePosition[0] + move[0];
-        var col = piecePosition[0] + move[1];
-        component isLegalMove = IsLegalBoardPosition();
-        isLegalMove.position <== [row, col];
-
-        positions[row][col] = 1;
-    }
     
-    // Knights move in an L-shape
+    // King can move forward
     component frontSquare = ClampedBoardPosition();
     frontSquare.position <== [piecePosition[0], piecePosition[1] + 1];
     positions[frontSquare.out[0]][frontSquare.out[1]] = 1;

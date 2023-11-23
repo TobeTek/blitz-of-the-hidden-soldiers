@@ -1,3 +1,5 @@
+pragma circom  2.0.0;
+
 // Determine the squares that are legal for a rook piece
 // considering it's initial position as well.
 // The result is a 2D array of booleans (0 or 1), indicating if a square
