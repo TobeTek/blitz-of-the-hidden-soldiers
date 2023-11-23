@@ -1,64 +1,39 @@
-pragma circom 2.0.0;
+pragma circom  2.0.0;
 
-include "../_common.circom";
-include "../../../node_modules/circomlib/circuits/mux1.circom";
-include "../../../node_modules/circomlib/circuits/mimc.circom";
-include "../../../node_modules/circomlib/circuits/comparators.circom";
-include "../../../node_modules/circomlib/circuits/gates.circom";
+include "./_common.circom";
+include "../../node_modules/circomlib/circuits/comparators.circom";
 
-// calculate positions a chess can move from an origin position
-// without considering other pieces on the board
-template getPieceRange(BOARD_SIZE){
-    signal input position[2];
-    signal output range[3][2];
+// Determine the squares that are legal for a pawn piece
+// considering it's initial position as well.
+// The result is a 2D array of booleans (0 or 1), indicating if a square
+// can be moved to or not.
+template Pawn(BOARD_WIDTH, BOARD_HEIGHT, PAWN_PIECE_TYPE){
+    signal input pieceType;
+    signal input piecePosition[2];
 
-    // Can move forward one step
-    component forwardPositions = ClampedBoardPosition();
-    forwardPositions.position[0] = position[0];
-    forwardPositions.position[1] = position[1] + 1;
-    range[0] <== forwardPositions;
+    signal output out[BOARD_HEIGHT][BOARD_WIDTH];
+
+    // Initialze board
+    var positions[BOARD_HEIGHT][BOARD_WIDTH];
+    for (var row = 0; row < BOARD_WIDTH; row++){
+        for (var col = 0; col < BOARD_WIDTH; col++){
+            positions[row][col] = 0;
+            
+        }
+    }
     
-    // Can attack left
-    component leftPositions = ClampedBoardPosition();
-    leftPositions.position[0] = position[0] + 1;
-    leftPositions.position[1] = position[1] - 1;
-    range[1] <== leftPositions;
+    // Pawns can move forward 
+    component frontSquare = ClampedBoardPosition();
+    frontSquare.position <== [piecePosition[0], piecePosition[1] + 1];
+    positions[frontSquare.out[0]][frontSquare.out[1]] = 1;
 
-    // Can attack right
-    component rightPositions = ClampedBoardPosition();
-    rightPositions.position[0] = position[0] + 1;
-    rightPositions.position[1] = position[1] + 1;
-    range[2] <== rightPositions;
+    component isPawnPiece = IsEqual();
+    isPawnPiece.in[0] <== PAWN_PIECE_TYPE;
+    isPawnPiece.in[1] <== pieceType;
+    
+    for (var row = 0; row < BOARD_WIDTH; row++){
+        for (var col = 0; col < BOARD_WIDTH; col++){
+            out[row][col] <-- isPawnPiece.out * positions[row][col];
+        }
+    }
 }
-
-template PawnPiece(MAX_PIECES_PER_PLAYER) {
-  // Private signals
-  signal input piecePosition[2];
-  signal input targetPosition[2];
-
-  signal input positionAllPieces[MAX_PIECES_PER_PLAYER][2];
-  
-  // Public signals 
-  signal input pieceId;
-  signal output pieceCommitment; // A hash of the piece Id, and targetPosition
-  signal output isValid; // boolean
-
-  component checkDuplicatePiecePositions = CheckDuplicatePiecePositions();
-  checkDuplicatePiecePositions.piecePositions <== positionAllPieces;
-  checkDuplicatePiecePositions.out === 0; // no duplicates
-
-  component mimcHash = MultiMiMC7(MAX_PIECES_PER_PLAYER * 2, 2);
-  mimcHash.k <== 256;
-  
-  for (var i = 0; i < MAX_PIECES_PER_PLAYER; i++){
-    var pos[2] = positionAllPieces[i];
-    var hashIndx = i * 2;
-    mimcHash.in[hashIndx] <==  pos[0];
-    mimcHash.in[hashIndx + 1] <== pos[1];
-  }
-
-  pieceCommitment <== mimcHash.out;
-  isValid <== 1;
-}
-
-component main {public [pieceId]} = PawnPiece(16);
