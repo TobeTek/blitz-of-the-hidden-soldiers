@@ -1,8 +1,6 @@
 pragma circom  2.0.0;
 
-include "./_common.circom";
-include "../../node_modules/circomlib/circuits/comparators.circom";
-include "../../node_modules/circomlib/circuits/mimc.circom";
+include "../_common.circom";
 
 // Determine the squares that are legal for a queen piece
 // considering it's initial position as well.

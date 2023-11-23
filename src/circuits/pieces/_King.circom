@@ -1,4 +1,5 @@
-pragma circom  2.0.0;
+pragma circom  2.1.0;
+
 
 // Determine the squares that are legal for a king piece
 // considering it's initial position as well.
@@ -10,6 +11,25 @@ template King(BOARD_WIDTH, BOARD_HEIGHT, KING_PIECE_TYPE){
 
     signal output out[BOARD_HEIGHT][BOARD_WIDTH];
 
+    var noMoves = 8;
+    var moveTransforms[noMoves][2];
+    
+    // Vertical
+    moveTransforms[0] = [0, 1];
+    moveTransforms[1] = [0, -1];
+
+    // Horizontal
+    moveTransforms[2] = [1, 0];
+    moveTransforms[3] = [-1, 0];
+
+    // Diagonal
+    moveTransforms[4] = [1, 1];
+    moveTransforms[5] = [1, -1];
+    moveTransforms[6] = [-1, 1];
+    moveTransforms[7] = [-1, -1];
+
+    var moves[noMoves][2];
+
     // Initialze board
     var positions[BOARD_HEIGHT][BOARD_WIDTH];
     for (var row = 0; row < BOARD_WIDTH; row++){
@@ -17,26 +37,18 @@ template King(BOARD_WIDTH, BOARD_HEIGHT, KING_PIECE_TYPE){
             positions[row][col] = 0;
         }
     }
-    
-    // King can move forward
-    component frontSquare = ClampedBoardPosition();
-    frontSquare.position <== [piecePosition[0], piecePosition[1] + 1];
-    positions[frontSquare.out[0]][frontSquare.out[1]] = 1;
 
-    // King can move backwards
-    component backSquare = ClampedBoardPosition();
-    backSquare.position <== [piecePosition[0], piecePosition[1] - 1];
-    positions[backSquare.out[0]][backSquare.out[1]] = 1;
+    // Apply the transformations to the board position
+    for (var i = 0; i < noMoves; i++){
+        moves[i][0] = piecePosition[0] + moveTransforms[i][0];
+        moves[i][1] = piecePosition[1] + moveTransforms[i][1];
+    }
 
-    // King can move left
-    component leftSquare = ClampedBoardPosition();
-    leftSquare.position <== [piecePosition[0] - 1, piecePosition[1]];
-    positions[leftSquare.out[0]][leftSquare.out[1]] = 1;
-
-    // King can move right
-    component rightSquare = ClampedBoardPosition();
-    rightSquare.position <== [piecePosition[0] + 1, piecePosition[1]];
-    positions[rightSquare.out[0]][rightSquare.out[1]] = 1;
+    for (var i = 0; i < noMoves; i++){
+        var row = moves[i][0];
+        var col = moves[i][1];
+        positions[row][col] = 1;
+    }
 
     component isKingPiece = IsEqual();
     isKingPiece.in[0] <== KING_PIECE_TYPE;

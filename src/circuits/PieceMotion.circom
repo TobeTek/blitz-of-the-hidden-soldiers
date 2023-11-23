@@ -1,15 +1,16 @@
 pragma circom  2.0.0;
 
-// include "https://github.com/iden3/circomlib/blob/master/circuits/comparators.circom";
+
 include "../../node_modules/circomlib/circuits/comparators.circom";
 include "../../node_modules/circomlib/circuits/mimc.circom";
 
 include "_common.circom";
-include "./pieces/_Pawn.circom";
-include "./pieces/_Rook.circom";
 include "./pieces/_Bishop.circom";
 include "./pieces/_King.circom";
+include "./pieces/_Knight.circom";
+include "./pieces/_Pawn.circom";
 include "./pieces/_Queen.circom";
+include "./pieces/_Rook.circom";
 
 template PieceRange() {
     var BOARD_WIDTH = 8;
@@ -17,14 +18,32 @@ template PieceRange() {
 
     // Piece types
     var KING_PIECE_TYPE = 0;
-    var QUEEN_PIECE_TYPE = 1;
-    var PAWN_PIECE_TYPE = 2;
+    var QUEEN_PIECE_TYPE = 10;
+    var BISHOP_PIECE_TYPE = 20;
+    var KNIGHT_PIECE_TYPE = 30;
+    var PAWN_PIECE_TYPE = 40;
+    var ROOK_PIECE_TYPE = 50;
 
     signal input pieceType;
     signal input piecePosition[2];
     signal output out[BOARD_WIDTH][BOARD_HEIGHT];
 
     // All piece types
+    component bishopMoves = Bishop(BOARD_WIDTH, BOARD_HEIGHT, BISHOP_PIECE_TYPE);
+    bishopMoves.piecePosition[0] <== piecePosition[0];
+    bishopMoves.piecePosition[1] <== piecePosition[1];
+    bishopMoves.pieceType <== pieceType;
+
+    component kingMoves = King(BOARD_WIDTH, BOARD_HEIGHT, KING_PIECE_TYPE);
+    kingMoves.piecePosition[0] <== piecePosition[0];
+    kingMoves.piecePosition[1] <== piecePosition[1];
+    kingMoves.pieceType <== pieceType;
+
+    component knightMoves = Knight(BOARD_WIDTH, BOARD_HEIGHT, KNIGHT_PIECE_TYPE);
+    knightMoves.piecePosition[0] <== piecePosition[0];
+    knightMoves.piecePosition[1] <== piecePosition[1];
+    knightMoves.pieceType <== pieceType;
+
     component pawnMoves = Pawn(BOARD_WIDTH, BOARD_HEIGHT, PAWN_PIECE_TYPE);
     pawnMoves.piecePosition[0] <== piecePosition[0];
     pawnMoves.piecePosition[1] <== piecePosition[1];
@@ -35,9 +54,21 @@ template PieceRange() {
     queenMoves.piecePosition[1] <== 4;
     queenMoves.pieceType <== pieceType;
 
+    component rookMoves = Rook(BOARD_WIDTH, BOARD_HEIGHT, ROOK_PIECE_TYPE);
+    rookMoves.piecePosition[0] <== piecePosition[0];
+    rookMoves.piecePosition[1] <== piecePosition[1];
+    rookMoves.pieceType <== pieceType;
+
     for (var row = 0; row < BOARD_WIDTH; row++){
         for (var col = 0; col < BOARD_WIDTH; col++){
-            out[row][col] <-- pawnMoves.out[row][col] || queenMoves.out[row][col];
+            out[row][col] <-- (
+                bishopMoves.out[row][col]
+                || kingMoves.out[row][col]
+                || knightMoves.out[row][col]
+                || pawnMoves.out[row][col]
+                || queenMoves.out[row][col]
+                || rookMoves.out[row][col]
+            );
         }
     }
 }
@@ -50,6 +81,8 @@ template HashPieceCommitment(){
     signal output out;
 
     component mimcCommitment = MultiMiMC7(4, 2);
+    mimcCommitment.k <== 256;
+
     mimcCommitment.in[0] <== pieceId;
     mimcCommitment.in[1] <== pieceType;
     mimcCommitment.in[2] <== piecePosition[0];
@@ -64,6 +97,8 @@ template HashPieceCommitment(){
 template PieceMotion() {
     var BOARD_WIDTH = 8;
     var BOARD_HEIGHT = 8;
+
+    var LEGAL_SQUARE = 1;
 
     signal input prevPublicCommitment; // public
     signal input pieceId;
@@ -87,7 +122,10 @@ template PieceMotion() {
     // Must be a valid move
     var targetRow = pieceTargetPosition[0];
     var targetCol = pieceTargetPosition[1];
-    pieceRange.out[targetRow][targetCol] === 1;
+    component isEq = IsEqual();
+    isEq.in[0] <-- pieceRange.out[targetRow][targetCol];
+    isEq.in[1] <-- LEGAL_SQUARE;
+    1 === isEq.out;
     
     // Calculate new commitment
     component pieceCommitment = HashPieceCommitment();
