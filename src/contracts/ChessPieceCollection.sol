@@ -7,15 +7,7 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Pausable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 
-/// @custom:security-contact katchyemma@gmail.com
-contract ChessPieceCollection is
-    ERC1155,
-    Ownable,
-    ERC1155Pausable,
-    ERC1155Burnable,
-    ERC1155Supply
-{
-    enum ChessPieceKind {
+enum ChessPieceClass {
         KING,
         QUEEN,
         PAWN,
@@ -26,25 +18,28 @@ contract ChessPieceCollection is
         TREBUCHET
     }
 
-    struct ChessPieceProperties {
-        uint256 pieceType; // Generally the same as the tokenId
-        ChessPieceKind pieceKind;
-        address verifierContractAddress;
-    }
+struct ChessPieceProperties {
+        uint256 tokenId; // Generally the same as the tokenId
+        ChessPieceClass pieceClass;
+}
 
-    mapping(uint256 => ChessPieceProperties) public pieceProperties;
+/// @custom:security-contact katchyemma@gmail.com
+contract ChessPieceCollection is
+    ERC1155,
+    Ownable,
+    ERC1155Pausable,
+    ERC1155Burnable,
+    ERC1155Supply
+{
+    mapping(uint256 => ChessPieceProperties) public tokenProperties;
 
     constructor(address initialOwner) ERC1155("") Ownable(initialOwner) {}
 
     function setPieceProperties(
         uint256 tokenId,
         ChessPieceProperties memory pieceProperty
-    ) onlyOwner {
-        require(
-            pieceProperty.pieceType == tokenId,
-            "pieceType must match the token id for a piece property"
-        );
-        pieceProperties[tokenId] = pieceProperty;
+    ) onlyOwner public {
+        tokenProperties[tokenId] = pieceProperty;
     }
 
     function setURI(string memory newuri) public onlyOwner {
