@@ -8,19 +8,19 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 
 enum ChessPieceClass {
-        KING,
-        QUEEN,
-        PAWN,
-        ROOK,
-        BISHOP,
-        KNIGHT,
-        // Exotics
-        TREBUCHET
-    }
+    KING,
+    QUEEN,
+    PAWN,
+    ROOK,
+    BISHOP,
+    KNIGHT,
+    // Exotics
+    TREBUCHET
+}
 
 struct ChessPieceProperties {
-        uint256 tokenId; // Generally the same as the tokenId
-        ChessPieceClass pieceClass;
+    uint256 tokenId; // Generally the same as the tokenId
+    ChessPieceClass pieceClass;
 }
 
 /// @custom:security-contact katchyemma@gmail.com
@@ -38,7 +38,7 @@ contract ChessPieceCollection is
     function setPieceProperties(
         uint256 tokenId,
         ChessPieceProperties memory pieceProperty
-    ) onlyOwner public {
+    ) public onlyOwner {
         tokenProperties[tokenId] = pieceProperty;
     }
 

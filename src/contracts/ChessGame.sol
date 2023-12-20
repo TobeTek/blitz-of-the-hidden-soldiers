@@ -1,42 +1,41 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
-// import "./Types.sol";
 
 import {IPieceMotion, IPlayerVision, IRevealBoardPosition} from "./Verifiers.sol";
 import {PieceSelection} from "./GameManager.sol";
+import {ChessPieceClass} from "./ChessPieceCollection.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
+struct Coordinate {
+    uint256 x;
+    uint256 y;
+}
+
+struct Piece {
+    uint256 pieceId;
+    uint256 tokenId;
+    ChessPieceClass pieceClass;
+    uint256 publicCommitment;
+    Coordinate pieceCoords;
+    bool isDead;
+}
+
+struct ChessMove {
+    uint256 pieceId;
+    uint256 publicCommitment;
+}
+
 contract ChessGame {
-    int constant UNDEFINED_COORD = -1;
-
-    struct Coordinate {
-        int x;
-        int y;
-    }
-
-    struct Piece {
-        bytes32 pieceId;
-        uint256 tokenId;
-        uint256 pieceClass;
-        bytes32 publicCommitment;
-        Coordinate pieceCoords;
-        bool isDead;
-    }
-
-    struct ChessMove {
-        bytes32 pieceId;
-        bytes32 publicCommitment;
-    }
-
     // Has the game started? Have all players placed their pieces on the 'board'?
     mapping(address => bool) public playerHasPlacedPieces;
 
-    function isGameStarted() public view {
+    function isGameStarted() public view returns (bool) {
         return
             playerHasPlacedPieces[playerWhite] &&
             playerHasPlacedPieces[playerBlack];
     }
 
+    address public winner;
     bool public isGameOver;
 
     // Admin accounts
@@ -54,23 +53,35 @@ contract ChessGame {
 
     mapping(address => ChessMove[]) public moves;
 
+    // Have all players made a move for the current turn
+    mapping(address => bool) public hasPlayedTurn;
+
     // Have all players reported their positions for the last play
     mapping(address => bool) public hasReportedPositions;
 
+    uint public constant BOARD_WIDTH = 8;
+    uint public constant BOARD_HEIGHT = 8;
+    uint public constant NO_BOARD_SQUARES = BOARD_WIDTH * BOARD_HEIGHT;
+    uint public constant NUMBER_OF_PIECES = 16; // per player
+
+    mapping(address => bytes32) playerCommitment;
+
     // Mapping of a Player to Piece IDs to Piece Positions
     // e.g { AliceAddress: { Pawn1 : {pieceType, publicCommitment ... }}}
-    mapping(address => mapping(bytes32 => Piece)) public piecePositions;
+    mapping(address => mapping(uint => Piece)) public playerPieces;
 
     // A simple mapping of board coordinates (x, y) and the pieces on each one
     // for each player
     mapping(address => mapping(uint => mapping(uint256 => uint256))) pieceCoordinates;
 
-    // The pieces a player can use in the particular game.
-    // The value is set by the GameManager.placePieces function
-    // Or a manual call from owner
-    mapping(address => mapping(uint => PieceSelection)) playerAllocations;
+    // Flattened array of which squares a player can see
+    mapping(address => uint[NO_BOARD_SQUARES]) playerBoardVision;
 
-    mapping(address => bytes32) public capturedPieces;
+    // The pieces a player can use in the particular game.
+    mapping(address => mapping(uint => PieceSelection))
+        public playerAllocations;
+
+    mapping(address => mapping(uint256 => bool)) public capturedPieces;
 
     modifier gameIsOver() {
         require(
@@ -82,7 +93,7 @@ contract ChessGame {
 
     modifier gameIsStarted() {
         require(
-            isGameStarted,
+            isGameStarted(),
             "The game must have started to be able to complete this action"
         );
         _;
@@ -103,30 +114,60 @@ contract ChessGame {
     }
 
     event MoveMade(address player, ChessMove move, bool playerIsWhite);
+    event PiecePositionRevealed(
+        address player,
+        uint256 pieceId,
+        Coordinate coord
+    );
     event PieceCaptured(address pieceOwner, Piece piece);
     event GameStarted();
-    event GameOver();
+    event GameOver(address winner);
 
-    constructor(address _playerWhite, address _playerBlack) {
+    constructor(
+        address _owner,
+        address _gameManagerAddress,
+        address _playerWhite,
+        address _playerBlack
+    ) {
+        owner = _owner;
+        gameManagerAddress = _gameManagerAddress;
         playerWhite = _playerWhite;
         playerBlack = _playerBlack;
     }
 
-    function placePieces(Piece[] pieces) public onlyPlayers {
-        mapping(uint => uint) tokenTally;
+    mapping(address => mapping(uint => uint)) playerTokenTally;
+
+    mapping(address => uint[]) playerTokenIds;
+
+    function placePieces(Piece[] calldata pieces) public onlyPlayers {
+        require(!isGameStarted(), "Pieces can only be placed at game start");
+
         for (uint i = 0; i < pieces.length; i++) {
-            Piece piece = pieces[i];
-            piecePositions[msg.sender][piece.pieceId] = piece;
+            Piece calldata piece = pieces[i];
+            playerTokenIds[msg.sender].push(piece.tokenId);
+
+            // Sanity check. To avoid conflicts with the default state
+            require(piece.pieceId != 0, "Piece ID can not be equal to zero");
+
+            playerPieces[msg.sender][piece.pieceId] = piece;
+
             // The initial position should always be undefined, regardless of what the user provides
-            piecePositions[msg.sender][piece.pieceId].pieceCoords = Coordinate(
+            playerPieces[msg.sender][piece.pieceId].pieceCoords = Coordinate(
                 UNDEFINED_COORD,
                 UNDEFINED_COORD
             );
+            // Pieces can't be 'born' dead. Can they?
+            playerPieces[msg.sender][piece.pieceId].isDead = false;
+
             playerHasPlacedPieces[msg.sender] = true;
-            tokenTally[piece.tokenId]++;
+            playerTokenTally[msg.sender][piece.tokenId]++;
+        }
+
+        for (uint i = 0; i < playerTokenIds[msg.sender].length; i++) {
+            uint tokenId = playerTokenIds[msg.sender][i];
             require(
-                playerAllocations[msg.sender][piece.tokenId] >=
-                    tokenTally[piece.tokenId]++,
+                playerAllocations[msg.sender][tokenId].count >=
+                    playerTokenTally[msg.sender][tokenId],
                 "Placed pieces do not match player allocation."
             );
         }
@@ -134,10 +175,14 @@ contract ChessGame {
 
     function setPlayerAllocation(
         address player,
-        PieceSelection[] pieces
+        PieceSelection[] calldata pieces
     ) public onlyAdmin {
+        require(
+            !isGameStarted(),
+            "Action can not be performed after game has started"
+        );
         for (uint i = 0; i < pieces.length; i++) {
-            PieceSelection piece = pieces[i];
+            PieceSelection calldata piece = pieces[i];
             playerAllocations[player][piece.tokenId] = piece;
         }
     }
@@ -158,17 +203,19 @@ contract ChessGame {
             "Player does not have a piece with this ID"
         );
         require(
-            isPlayerWhite(msg.sender) == isWhitePlayerTurn,
+            isPlayerWhite(msg.sender) == isWhitePlayerTurn(),
             "It is not this player's turn to make a move"
         );
 
-        bool isValidProof = IPieceMotion(pieceMotionCircomAddress).verifyProof(
-            _proof,
-            _pubSignals
+        require(
+            IPieceMotion(pieceMotionCircomAddress).verifyProof(
+                _proof,
+                _pubSignals
+            ),
+            "Invalid proof submitted"
         );
-        require(isValidProof, "Invalid proof submitted");
 
-        piecePositions[msg.sender][pieceId].publicCommitment = publicCommitment;
+        playerPieces[msg.sender][pieceId].publicCommitment = publicCommitment;
         moves[msg.sender].push(ChessMove(pieceId, publicCommitment));
         emit MoveMade(
             msg.sender,
@@ -177,17 +224,115 @@ contract ChessGame {
         );
     }
 
-    function reportBoardVision() public gameIsStarted onlyPlayers {}
+    function reportBoardVision(
+        uint256[24] calldata _proof,
+        uint256[65] calldata _pubSignals
+    ) public gameIsStarted onlyPlayers {
+        require(
+            isPlayerWhite(msg.sender) == isWhitePlayerTurn(),
+            "It is not this player's turn to make a move"
+        );
+        IPlayerVision(playerVisionCircomAddress).verifyProof(
+            _proof,
+            _pubSignals
+        );
 
-    function reportPositions() public gameIsStarted onlyPlayers {
-        // Assert length of pieces is the same
+        for (uint i; i < NO_BOARD_SQUARES; i++) {
+            playerBoardVision[msg.sender][i] = _pubSignals[i];
+        }
+    }
+
+    function reportPositions(
+        uint256[24] calldata _proof,
+        uint256[64] calldata _pubSignals
+    ) public gameIsStarted onlyPlayers {
+        require(
+            IRevealBoardPosition(revealBoardPositionCircomAddress).verifyProof(
+                _proof,
+                _pubSignals
+            ),
+            "Invalid proof"
+        );
+
+        uint256[] memory pieceIds;
+        for (uint i = 0; i < NUMBER_OF_PIECES; i++) {
+            pieceIds[i] = _pubSignals[i];
+        }
+
+        // Two coordinate values are stored for each piece
+        uint256[] memory pieceCoords;
+
+        uint counter = 0;
+        for (uint i = NUMBER_OF_PIECES; i < NUMBER_OF_PIECES * 2; i += 2) {
+            uint row = i;
+            uint col = i + 1;
+            uint pieceId = pieceIds[counter];
+            uint xCoord = _pubSignals[row];
+            uint yCoord = pieceCoords[col];
+
+            Coordinate memory pieceCoord = Coordinate(xCoord, yCoord);
+            playerPieces[msg.sender][pieceId].pieceCoords = pieceCoord;
+            pieceCoordinates[msg.sender][xCoord][yCoord] = pieceId;
+
+            counter++;
+
+            emit PiecePositionRevealed(msg.sender, pieceId, pieceCoord);
+        }
 
         hasReportedPositions[msg.sender] = true;
     }
 
-    // When both white and black have played their turns
-    // Reset the
     function markTurnAsOver() public onlyPlayers {
+        require(
+            hasReportedPositions[playerWhite] &&
+                hasReportedPositions[playerBlack],
+            "A player's turn can not be marked as completed till both players have reported piece positions"
+        );
+
+        // Check if the last move was a kill
+        address attackingPlayer;
+        address defendingPlayer;
+
+        if (isWhitePlayerTurn()) {
+            attackingPlayer = playerWhite;
+            defendingPlayer = playerBlack;
+        } else {
+            attackingPlayer = playerBlack;
+            defendingPlayer = playerWhite;
+        }
+
+        for (uint row = 0; row < BOARD_WIDTH; row++) {
+            for (uint col = 0; col < BOARD_HEIGHT; col++) {
+                uint attackingPieceId = pieceCoordinates[attackingPlayer][row][
+                    col
+                ];
+                uint defendingPieceId = pieceCoordinates[defendingPlayer][row][
+                    col
+                ];
+                // A piece was 'killed'!
+                if (
+                    playerHasPiece(attackingPlayer, attackingPieceId) &&
+                    playerHasPiece(defendingPlayer, defendingPieceId)
+                ) {
+                    capturedPieces[defendingPlayer][defendingPieceId] = true;
+                    playerPieces[defendingPlayer][defendingPieceId]
+                        .isDead = true;
+
+                    Piece storage piece = playerPieces[defendingPlayer][
+                        defendingPieceId
+                    ];
+                    emit PieceCaptured(defendingPlayer, piece);
+
+                    // Once a king is captured, game over!
+                    if (piece.pieceClass == ChessPieceClass.KING) {
+                        isGameOver = true;
+                        winner = attackingPlayer;
+                        emit GameOver(attackingPlayer);
+                    }
+                }
+            }
+        }
+
         hasReportedPositions[playerWhite] = false;
         hasReportedPositions[playerBlack] = false;
     }
@@ -216,18 +361,20 @@ contract ChessGame {
     // Utility functions
     function playerHasPiece(
         address _player,
-        bytes32 _pieceId
+        uint256 _pieceId
     ) public view returns (bool) {
         // Pieces that have not been defined
         // will have a piece ID of 0 in the struct
-        return piecePositions[_player][_pieceId].pieceId == bytes32(0);
+        return playerPieces[_player][_pieceId].pieceId == uint256(0);
     }
 
     function isPlayerWhite(address _address) public view returns (bool) {
         return _address == playerWhite;
     }
 
-    function isWhitePlayerTurn() public view {
+    function isWhitePlayerTurn() public view returns (bool) {
         return moves[playerBlack].length >= moves[playerWhite].length;
     }
+
+    uint public constant UNDEFINED_COORD = 1e10;
 }

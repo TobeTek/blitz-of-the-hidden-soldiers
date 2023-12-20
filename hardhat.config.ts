@@ -6,10 +6,21 @@ import {
   HttpNetworkAccountsUserConfig,
 } from "hardhat/types";
 import "@nomicfoundation/hardhat-toolbox";
+
+import "tsconfig-paths/register";
 // import "hardhat-circom";
 
 const config: HardhatUserConfig = {
-  solidity: "0.8.22",
+  solidity: {
+    version:"0.8.22",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 1,
+      },
+      "viaIR": true,
+    }
+  },
   paths: {
     sources: "./src/contracts",
     tests: "./src/test",
@@ -23,14 +34,14 @@ const config: HardhatUserConfig = {
       ] as HttpNetworkAccountsUserConfig,
     },
   },
-  circom: {
-    // (optional) Base path for input files, defaults to `./circuits/`
-    inputBasePath: "./src/circuits",
-    // (required) The final ptau file, relative to inputBasePath, from a Phase 1 ceremony
-    ptau: "https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_15.ptau",
-    // (required) Each object in this array refers to a separate circuit
-    circuits: [{ name: "division", protocol: "groth16" }],
-  },
+  // circom: {
+  //   // (optional) Base path for input files, defaults to `./circuits/`
+  //   inputBasePath: "./src/circuits",
+  //   // (required) The final ptau file, relative to inputBasePath, from a Phase 1 ceremony
+  //   ptau: "https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_15.ptau",
+  //   // (required) Each object in this array refers to a separate circuit
+  //   circuits: [{ name: "division", protocol: "groth16" }],
+  // },
 };
 
 export default config;

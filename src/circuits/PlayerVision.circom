@@ -1,7 +1,33 @@
 pragma circom 2.1.5;
 
-
+include "../../node_modules/circomlib/circuits/mimcsponge.circom";
 include "./_PieceRange.circom";
+
+template HashCommitmentArray(nPieces) {
+    signal input pieceIds[nPieces];
+    signal input pieceTypes[nPieces];
+    signal input piecePositions[nPieces][2];
+
+    signal output out;
+
+    component pieceHash[nPieces];
+    for (var i = 0; i < nPieces; i++){
+        pieceHash[i] = HashPieceCommitment();
+        pieceHash[i].pieceId <== pieceIds[i];
+        pieceHash[i].pieceType <== pieceTypes[i];
+        pieceHash[i].piecePosition <== piecePositions[i];
+    }
+    
+    component mimcCommitment = MiMCSponge(nPieces, 220, 1);
+    mimcCommitment.k <== 0;
+
+    for (var i = 0; i < nPieces; i++){
+        mimcCommitment.ins[i] <== pieceHash[i].out;
+    }
+
+    out <== mimcCommitment.outs[0];
+}
+
 
 // Check if there are any duplicate elements in an array
 // If the array is multidimensional, it considers each sub-array as a unique element
@@ -41,33 +67,6 @@ template ArrayHasDuplicatePositions(arraySize, nDims) {
     out <-- anyEq;
 }
 
-
-template HashCommitmentArray(nPieces) {
-
-    signal input pieceIds[nPieces];
-    signal input pieceTypes[nPieces];
-    signal input piecePositions[nPieces][2];
-
-    signal output out;
-
-    component pieceHash[nPieces];
-    for (var i = 0; i < nPieces; i++){
-        pieceHash[i] = HashPieceCommitment();
-        pieceHash[i].pieceId <== pieceIds[i];
-        pieceHash[i].pieceType <== pieceTypes[i];
-        pieceHash[i].piecePosition <== piecePositions[i];
-    }
-    
-    component mimcCommitment = MultiMiMC7(nPieces, 2);
-    mimcCommitment.k <== 256;
-
-    for (var i = 0; i < nPieces; i++){
-        mimcCommitment.in[i] <== pieceHash[i].out;
-    }
-
-    out <== mimcCommitment.out;
-}
-
 // Determine which squares a player can see, given their current pieces
 // TODO: Ignore pieces that are dead. They can't contribute to player vision
 template PlayerVision(){
@@ -82,10 +81,10 @@ template PlayerVision(){
     signal output totalPlayerVisibility[BOARD_WIDTH][BOARD_HEIGHT];
     signal output positionCommitment;
 
-    // Assert that there are no duplicates in board positions
-    component duplicatePositions = ArrayHasDuplicatePositions(NUMBER_OF_PIECES, 2);
-    duplicatePositions.arr <== piecePositions;
-    duplicatePositions.out === 0;
+    // // Assert that there are no duplicates in board positions
+    // component duplicatePositions = ArrayHasDuplicatePositions(NUMBER_OF_PIECES, 2);
+    // duplicatePositions.arr <== piecePositions;
+    // duplicatePositions.out === 0;
 
     // Determine the squares that are visible to a player
     component pieceVision[NUMBER_OF_PIECES];

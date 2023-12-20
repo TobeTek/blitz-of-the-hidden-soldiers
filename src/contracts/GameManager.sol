@@ -5,19 +5,11 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "./ChessGame.sol";
 import "./ChessPieceCollection.sol";
 
-import {ChessPieceProperties} from "./ChessPieceCollection.sol";
-
-enum PieceClass {
-    KING,
-    QUEEN,
-    BISHOP,
-    KNIGHT,
-    ROOK,
-    PAWN
-}
+import {ChessPieceFormation} from "./ChessPieceFormations.sol";
+import {ChessPieceProperties, ChessPieceClass} from "./ChessPieceCollection.sol";
 
 struct PieceSelection {
-    PieceClass pieceClass;
+    ChessPieceClass pieceClass;
     uint256 tokenId;
     uint256 count;
 }
@@ -25,22 +17,17 @@ struct PieceSelection {
 interface IChessCollection is IERC1155 {
     function tokenProperties(
         uint256
-    ) external view returns (ChessPieceProperties);
+    ) external view returns (ChessPieceProperties memory);
 }
 
 // Manage creating games between players
 // Lock pieces currently in game
-contract GameManager {
+contract GameManager is ChessPieceFormation {
     struct GameData {
         address playerWhite;
         address playerBlack;
         bool isOver;
     }
-
-    // struct Piece {
-    //     uint256 pieceType;
-    //     bytes32 pieceId;
-    // }
 
     event GameCreated();
 
@@ -58,9 +45,6 @@ contract GameManager {
     // We lock players' pieces when they are currently in use in a match
     mapping(address => mapping(uint256 => uint256)) public lockedTokens;
 
-    // Address of the BoTHS NFT Collection Smart Contract
-    address public chessCollectionAddress;
-
     constructor(address _owner, address _chessCollectionAddress) {
         owner = _owner;
         chessCollectionAddress = _chessCollectionAddress;
@@ -76,8 +60,8 @@ contract GameManager {
         address playerWhite,
         address playerBlack
     ) public returns (address) {
-        ChessGame game = new ChessGame(playerWhite, playerBlack);
-        games[game] = GameData(playerWhite, playerBlack);
+        ChessGame game = new ChessGame(owner, address(this), playerWhite, playerBlack);
+        games[address(game)] = GameData(playerWhite, playerBlack, false);
 
         playerActiveGames[playerWhite]++;
         playerActiveGames[playerBlack]++;
@@ -96,68 +80,6 @@ contract GameManager {
         game.setPlayerAllocation(msg.sender, pieces);
     }
 
-    // Verify that the right pieces were used in the right proportion
-    function validatePieceFormation(PieceSelection[] memory pieces) public {
-        // Standard Chess Formation
-        mapping(PieceClass => uint) standardChessFormation;
-        standardChessFormation[PieceClass.KING] = 1;
-        standardChessFormation[PieceClass.QUEEN] = 1;
-        standardChessFormation[PieceClass.BISHOP] = 2;
-        standardChessFormation[PieceClass.KNIGHT] = 2;
-        standardChessFormation[PieceClass.ROOK] = 2;
-        standardChessFormation[PieceClass.PAWN] = 8;
-        bool isStandardFormation = true;
-
-        // All Pawns Formation
-        mapping(PieceClass => uint) allPawnsFormation;
-        allPawnsFormation[PieceClass.KING] = 1;
-        allPawnsFormation[PieceClass.QUEEN] = 1;
-        allPawnsFormation[PieceClass.BISHOP] = 0;
-        allPawnsFormation[PieceClass.KNIGHT] = 0;
-        allPawnsFormation[PieceClass.ROOK] = 0;
-        allPawnsFormation[PieceClass.PAWN] = 16;
-        bool isAllPawmFormation = true;
-
-        mapping(PieceClass => uint256) classTally;
-        PieceClass[] memory allClasses;
-
-        for (uint i = 0; i < pieces.length; i++) {
-            PieceSelection memory piece = pieces[i];
-            IChessCollection chessCollection = IChessCollection(
-                chessCollectionAddress
-            );
-
-            ChessPieceProperties pieceProperties = chessCollection
-                .tokenProperties(piece.tokenId);
-
-            require(
-                piece.pieceClass == pieceProperties.pieceClass,
-                "Input pieceClass and actual pieceClass do not match."
-            );
-
-            if (classTally[pieceProperties.pieceClass] == 0) {
-                allClasses.push(pieceProperties.pieceClass);
-            }
-            classTally[pieceProperties.pieceClass] += piece.count;
-        }
-
-        for (uint i = 0; i < allClasses.length; i++) {
-            PieceClass pieceClass = allClasses[i];
-            isStandardFormation =
-                isStandardFormation &&
-                (standardChessFormation[pieceClass] == classTally[PieceClass]);
-            isAllPawmFormation =
-                isAllPawmFormation &&
-                (allPawnsFormation[pieceClass] == classTally[PieceClass]);
-        }
-
-        // TODO: Support more formations
-        require(
-            isStandardFormation || isAllPawmFormation,
-            "This piece formation is not allowed."
-        );
-    }
-
     function validateUserHasTokenBalance(
         address player,
         PieceSelection[] memory pieces
@@ -167,24 +89,24 @@ contract GameManager {
         );
         // Confirm player has all specified pieces
         for (uint i; i < pieces.length; i++) {
-            PieceSelection calldata piece = pieces[i];
+            PieceSelection memory piece = pieces[i];
             address[] memory accounts;
             accounts[0] = player;
             accounts[1] = address(0);
 
-            uint256[] memory pieceIds;
-            pieceIds[0] = piece.pieceType;
-            pieceIds[1] = piece.pieceType;
+            uint256[] memory tokenIds;
+            tokenIds[0] = piece.tokenId;
+            tokenIds[1] = piece.tokenId;
 
             uint256[] memory balances = chessCollection.balanceOfBatch(
                 accounts,
-                pieceIds
+                tokenIds
             );
 
             // We only check if either the player as an entity has that number of pieces.
             // We can also check if a combination of both the player's balance and the default pieceset
             // can meet the desired number, however, generally, we want to prevent such 'mixing' of ownership
-            uint256 lockedPlayerTokens = lockedTokens[player][piece.pieceType];
+            uint256 lockedPlayerTokens = lockedTokens[player][piece.tokenId];
             bool playerHasPieces = (balances[0] + lockedPlayerTokens) >=
                 piece.count;
             // Only a single record of a default piece is stored
@@ -198,7 +120,7 @@ contract GameManager {
             // Lock the pieces so they can't be sold while in play
             // TODO: Switch to using batchTransferFrom
             uint256 lockAmount = piece.count - lockedPlayerTokens;
-            if (playerHasPieces && lockAmount) {
+            if (playerHasPieces && (lockAmount > 0)) {
                 lockPlayerTokens(player, piece.tokenId, lockAmount);
             }
         }
@@ -206,7 +128,7 @@ contract GameManager {
 
     function markGameAsOver(address gameAddress) public {
         ChessGame game = ChessGame(gameAddress);
-        require(game.isGameOver, "This chess game has not yet ended");
+        require(game.isGameOver(), "This chess game has not yet ended");
 
         games[gameAddress].isOver = true;
 
@@ -230,7 +152,8 @@ contract GameManager {
             player,
             address(this),
             tokenId,
-            lockAmount
+            lockAmount,
+            ""
         );
 
         lockedTokens[player][tokenId] += lockAmount;
@@ -246,7 +169,7 @@ contract GameManager {
             "Only the token owner or smart contract owner can perform this action"
         );
         require(
-            !playerActiveGames[player],
+            playerActiveGames[player] == 0,
             "Player must conclude all ongoing games before unlocking pieces"
         );
 
@@ -259,7 +182,8 @@ contract GameManager {
             address(this),
             player,
             tokenId,
-            unlockAmount
+            unlockAmount,
+            ""
         );
     }
 

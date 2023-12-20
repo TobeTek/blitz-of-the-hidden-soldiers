@@ -1,4 +1,4 @@
-pragma circom  2.1.5;
+pragma circom 2.1.5;
 
 
 include "../../node_modules/circomlib/circuits/comparators.circom";
@@ -29,7 +29,6 @@ template PieceMotion() {
     initialPieceCommitment.pieceId <== pieceId;
     initialPieceCommitment.pieceType <== pieceType;
     initialPieceCommitment.piecePosition <== pieceInitialPosition;
-
     initialPieceCommitment.out === prevPublicCommitment;
 
     component pieceRange = PieceRange();
@@ -39,6 +38,12 @@ template PieceMotion() {
     // Must be a valid move
     var targetRow = pieceTargetPosition[0];
     var targetCol = pieceTargetPosition[1];
+
+    // TODO: Switch to Array Selector component
+    // component arrSelector = Select2DArrayIndex(BOARD_WIDTH, BOARD_HEIGHT);
+    // arrSelector.arr <== pieceRange.out;
+    // arrSelector.index <== [targetRow, targetCol];
+
     component isEq = IsEqual();
     isEq.in[0] <-- pieceRange.out[targetRow][targetCol];
     isEq.in[1] <-- LEGAL_SQUARE;
