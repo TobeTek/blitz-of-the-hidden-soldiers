@@ -1,17 +1,17 @@
 #!/bin/bash
 
 # Download powers_of_tau file
-file_url="https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_18.ptau"
-destination_path="artifacts/powersOfTau28_hez_final_18.ptau"
+file_url="https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_16.ptau"
+destination_path="artifacts/powersOfTau28_hez_final_16.ptau"
 
 # Check if the file exists
 if [ ! -f "$destination_path" ]; then
     # If the file doesn't exist, download it
     curl -o "$destination_path" "$file_url"
-    echo "powersOfTau28_hez_final_18.ptau downloaded successfully."
+    echo "powersOfTau28_hez_final_16.ptau downloaded successfully."
 else
     # If the file exists, print a message
-    echo "powersOfTau28_hez_final_18.ptau already exists. No need to download."
+    echo "powersOfTau28_hez_final_16.ptau already exists. No need to download."
 fi
 
 process_file() {
@@ -30,10 +30,17 @@ process_file() {
 
     
     # Create Final Verification Keys. Use PLONK protocol
-    snarkjs plonk setup build/compiled_circom/$circuit_name.r1cs artifacts/powersOfTau28_hez_final_18.ptau build/zkeys/$circuit_name.zkey
+    snarkjs plonk setup build/compiled_circom/$circuit_name.r1cs artifacts/powersOfTau28_hez_final_16.ptau build/zkeys/$circuit_name.zkey
 
     # Export Solidity Verifier Smart Contract
     snarkjs zkey export solidityverifier build/zkeys/$circuit_name.zkey src/contracts/circom_verifiers/$circuit_name.Verifier.sol
+
+    # Change the contract name from default to circom name
+    # We can also achieve this by hooking into snarkjs and changing the template used
+    verifier_contract="$circuit_name"PlonkVerifier
+    
+    echo "Verifier Contract Name: $verifier_contract"
+    sed -i "s/PlonkVerifier/$verifier_contract/g" src/contracts/circom_verifiers/$circuit_name.Verifier.sol
 
 }
 

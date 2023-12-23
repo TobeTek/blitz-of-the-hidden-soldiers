@@ -1,5 +1,8 @@
 import { mimcHashMulti } from "@src/utils/hashers";
 export const UNDEFINED_COORD = 1e10;
+export const NUMBER_OF_PIECES = 10;
+export const BOARD_WIDTH = 8;
+export const BOARD_HEIGHT = 8;
 
 export type Coordinate = {
   x: number;

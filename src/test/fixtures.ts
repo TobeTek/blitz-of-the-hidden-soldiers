@@ -1,9 +1,5 @@
 import { PieceClass, Piece, PieceSelection } from "@src/types";
 
-export const BOARD_WIDTH = 8;
-export const BOARD_HEIGHT = 8;
-export const NUMBER_OF_PIECES = 16;
-
 export const playerVision = [
   [0, 1, 0, 0, 1, 0, 0, 1],
   [1, 0, 0, 1, 0, 0, 1, 0],
@@ -57,30 +53,6 @@ export const standardPieceLayout: Piece[] = [
     },
   },
   {
-    pieceId: 6,
-    pieceClass: PieceClass.PAWN,
-    pieceCoords: {
-      x: 5,
-      y: 1,
-    },
-  },
-  {
-    pieceId: 7,
-    pieceClass: PieceClass.PAWN,
-    pieceCoords: {
-      x: 6,
-      y: 1,
-    },
-  },
-  {
-    pieceId: 8,
-    pieceClass: PieceClass.PAWN,
-    pieceCoords: {
-      x: 7,
-      y: 1,
-    },
-  },
-  {
     pieceId: 9,
     pieceClass: PieceClass.ROOK,
     pieceCoords: {
@@ -117,30 +89,6 @@ export const standardPieceLayout: Piece[] = [
     pieceClass: PieceClass.KING,
     pieceCoords: {
       x: 4,
-      y: 0,
-    },
-  },
-  {
-    pieceId: 14,
-    pieceClass: PieceClass.BISHOP,
-    pieceCoords: {
-      x: 5,
-      y: 0,
-    },
-  },
-  {
-    pieceId: 15,
-    pieceClass: PieceClass.KNIGHT,
-    pieceCoords: {
-      x: 6,
-      y: 0,
-    },
-  },
-  {
-    pieceId: 16,
-    pieceClass: PieceClass.ROOK,
-    pieceCoords: {
-      x: 7,
       y: 0,
     },
   },
@@ -202,22 +150,22 @@ export const pieceAllocation: PieceSelection[] = [
   {
     pieceClass: PieceClass.BISHOP,
     tokenId: BishopTokens.STANDARD_BISHOP,
-    count: 2,
+    count: 1,
   },
   {
     pieceClass: PieceClass.KNIGHT,
     tokenId: KnightTokens.STANDARD_KNIGHT,
-    count: 2,
+    count: 1,
   },
   {
     pieceClass: PieceClass.ROOK,
     tokenId: RookTokens.STANDARD_ROOK,
-    count: 2,
+    count: 1,
   },
   {
     pieceClass: PieceClass.PAWN,
     tokenId: PawnTokens.STANDARD_PAWN,
-    count: 8,
+    count: 5,
   },
 ];
 
@@ -235,21 +183,21 @@ export const exoticPieceAllocation: PieceSelection[] = [
   {
     pieceClass: PieceClass.BISHOP,
     tokenId: BishopTokens.VARANGIAN_GUARD_BISHOP,
-    count: 2,
+    count: 1,
   },
   {
     pieceClass: PieceClass.KNIGHT,
     tokenId: KnightTokens.SAGITTARII_KNIGHT,
-    count: 2,
+    count: 1,
   },
   {
     pieceClass: PieceClass.ROOK,
     tokenId: RookTokens.PAVISE_ROOK,
-    count: 2,
+    count: 1,
   },
   {
     pieceClass: PieceClass.PAWN,
     tokenId: PawnTokens.CONQUISTADORS_PAWN,
-    count: 8,
+    count: 5,
   },
 ];

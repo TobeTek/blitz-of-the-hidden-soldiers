@@ -1,36 +1,54 @@
+import "@nomicfoundation/hardhat-toolbox";
+import { configDotenv } from "dotenv";
 import { HardhatUserConfig } from "hardhat/config";
-import { NetworksUserConfig } from "hardhat/types";
-import { HardhatNetworkAccountUserConfig } from "hardhat/types";
 import {
+  HardhatNetworkAccountUserConfig,
   HttpNetworkAccountsConfig,
   HttpNetworkAccountsUserConfig,
+  NetworksUserConfig,
 } from "hardhat/types";
-import "@nomicfoundation/hardhat-toolbox";
 
+import "hardhat-deploy";
 import "tsconfig-paths/register";
 // import "hardhat-circom";
 
+configDotenv();
+
 const config: HardhatUserConfig = {
   solidity: {
-    version:"0.8.22",
+    version: "0.8.22",
     settings: {
       optimizer: {
         enabled: true,
         runs: 1,
       },
-      "viaIR": true,
-    }
+      outputSelection: {
+        "*": {
+          "*": ["storageLayout"],
+        },
+      },
+      viaIR: true,
+    },
   },
   paths: {
     sources: "./src/contracts",
     tests: "./src/test",
   },
+  defaultNetwork: "hardhat",
+  namedAccounts: {
+    deployer: {
+      default: 0,
+    },
+  },
   networks: {
+    hardhat: {
+      chainId: 31337,
+    },
     topos: {
       chainId: 2359,
       url: "https://rpc.topos-subnet.testnet-1.topos.technology",
       accounts: [
-        "c3254734b203f0bcd02e6400d5f27f4f962c000e491ddd88f96d8e4855110b1c"
+        process.env.DEV_ACCOUNT_PRIVATE_KEY,
       ] as HttpNetworkAccountsUserConfig,
     },
   },

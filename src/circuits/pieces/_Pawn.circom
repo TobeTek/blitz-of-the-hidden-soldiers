@@ -11,10 +11,11 @@ template Pawn(BOARD_WIDTH, BOARD_HEIGHT, PAWN_PIECE_TYPE){
 
     signal output out[BOARD_HEIGHT][BOARD_WIDTH];
 
-    var noMoves = 1;
+    var noMoves = 2;
     var moveTransforms[noMoves][2];
     
     moveTransforms[0] = [0, 1];
+    moveTransforms[1] = [0, -1];
     
     var moves[noMoves][2];
 

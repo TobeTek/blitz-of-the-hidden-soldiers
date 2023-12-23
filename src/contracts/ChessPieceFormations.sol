@@ -1,43 +1,34 @@
-// SPDX-License-Identifier: SEE LICENSE IN LICENSE
+// SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import {PieceSelection} from "./GameManager.sol";
-import {ChessPieceProperties, ChessPieceClass} from "./ChessPieceCollection.sol";
+import {ChessPieceProperties, ChessPieceClass, IChessCollection} from "./ChessPieceCollection.sol";
 
-interface IChessCollection is IERC1155 {
-    function tokenProperties(
-        uint256
-    ) external view returns (ChessPieceProperties memory);
-}
-
+/**
+ * @title ChessPieceFormation
+ * @dev A contract handling the validation of chess piece formations.
+ */
 abstract contract ChessPieceFormation {
     // Address of the BoTHS NFT Collection Smart Contract
     address public chessCollectionAddress;
 
-    // Standard Chess Formation
-    mapping(ChessPieceClass => uint) standardChessFormation;
-
-    // All Pawns Formation
-    mapping(ChessPieceClass => uint) allPawnsFormation;
-
-    // Verify that the right pieces were used in the right proportion
+    /**
+     * @dev Validates that the given piece formation is allowed.
+     * @param pieces The array of PieceSelection representing the chess pieces.
+     * Requirements:
+     * - Input pieceClass and actual pieceClass must match for each piece.
+     * - The piece formation must be either a valid standard chess formation or a valid all-pawn formation.
+     */
     function validatePieceFormation(
         PieceSelection[] memory pieces
     ) public view {
-        uint kingClassTally;
-        uint queenClassTally;
-        uint bishopClassTally;
-        uint knightClassTally;
-        uint rookClassTally;
-        uint pawnClassTally;
+        uint[6] memory classTally;
 
         for (uint i = 0; i < pieces.length; i++) {
             PieceSelection memory piece = pieces[i];
             IChessCollection chessCollection = IChessCollection(
                 chessCollectionAddress
             );
-
             ChessPieceProperties memory pieceProperties = chessCollection
                 .tokenProperties(piece.tokenId);
 
@@ -46,76 +37,48 @@ abstract contract ChessPieceFormation {
                 "Input pieceClass and actual pieceClass do not match."
             );
 
-            // This could have been simplified using a mapping, but writing to state is expensive
-            // and we expect this function to be called frequently
-            if (piece.pieceClass == ChessPieceClass.KING) {
-                kingClassTally += piece.count;
-            } else if (piece.pieceClass == ChessPieceClass.QUEEN) {
-                queenClassTally += piece.count;
-            } else if (piece.pieceClass == ChessPieceClass.BISHOP) {
-                bishopClassTally += piece.count;
-            } else if (piece.pieceClass == ChessPieceClass.KNIGHT) {
-                knightClassTally += piece.count;
-            } else if (piece.pieceClass == ChessPieceClass.ROOK) {
-                rookClassTally += piece.count;
-            } else if (piece.pieceClass == ChessPieceClass.PAWN) {
-                pawnClassTally += piece.count;
-            } else {
-                revert("Unknown/unsupported piece class");
-            }
+            uint pieceClassIndex = uint(piece.pieceClass);
+            require(pieceClassIndex < 6, "Unknown/unsupported piece class");
+
+            classTally[pieceClassIndex] += piece.count;
         }
 
-        // TODO: Support more formations
         require(
-            isValidStandardChessFormation(
-                kingClassTally,
-                queenClassTally,
-                bishopClassTally,
-                knightClassTally,
-                rookClassTally,
-                pawnClassTally
-            ) ||
-                isValidAllPawnFormation(
-                    kingClassTally,
-                    queenClassTally,
-                    bishopClassTally,
-                    knightClassTally,
-                    rookClassTally,
-                    pawnClassTally
-                ),
+            isValidStandardChessFormation(classTally) ||
+                isValidAllPawnFormation(classTally),
             "This piece formation is not allowed."
         );
     }
 
+    /**
+     * @dev Checks if the given class tally represents a valid standard chess formation.
+     * @param classTally An array representing the tally of each chess piece class.
+     * @return A boolean indicating whether the formation is valid.
+     */
     function isValidStandardChessFormation(
-        uint kingClassTally,
-        uint queenClassTally,
-        uint bishopClassTally,
-        uint knightClassTally,
-        uint rookClassTally,
-        uint pawnClassTally
+        uint[6] memory classTally
     ) public pure returns (bool) {
-        return ((kingClassTally == 1) &&
-            (queenClassTally == 1) &&
-            (bishopClassTally == 2) &&
-            (knightClassTally == 2) &&
-            (rookClassTally == 2) &&
-            (pawnClassTally == 8));
+        return ((classTally[uint(ChessPieceClass.KING)] == 1) &&
+            (classTally[uint(ChessPieceClass.QUEEN)] == 1) &&
+            (classTally[uint(ChessPieceClass.BISHOP)] == 1) &&
+            (classTally[uint(ChessPieceClass.KNIGHT)] == 1) &&
+            (classTally[uint(ChessPieceClass.ROOK)] == 1) &&
+            (classTally[uint(ChessPieceClass.PAWN)] == 5));
     }
 
+    /**
+     * @dev Checks if the given class tally represents a valid all-pawn formation.
+     * @param classTally An array representing the tally of each chess piece class.
+     * @return A boolean indicating whether the formation is valid.
+     */
     function isValidAllPawnFormation(
-        uint kingClassTally,
-        uint queenClassTally,
-        uint bishopClassTally,
-        uint knightClassTally,
-        uint rookClassTally,
-        uint pawnClassTally
+        uint[6] memory classTally
     ) public pure returns (bool) {
-        return ((kingClassTally == 1) &&
-            (queenClassTally == 1) &&
-            (bishopClassTally == 0) &&
-            (knightClassTally == 0) &&
-            (rookClassTally == 0) &&
-            (pawnClassTally == 14));
+        return ((classTally[uint(ChessPieceClass.KING)] == 1) &&
+            (classTally[uint(ChessPieceClass.QUEEN)] == 1) &&
+            (classTally[uint(ChessPieceClass.BISHOP)] == 0) &&
+            (classTally[uint(ChessPieceClass.KNIGHT)] == 0) &&
+            (classTally[uint(ChessPieceClass.ROOK)] == 0) &&
+            (classTally[uint(ChessPieceClass.PAWN)] == 8));
     }
 }

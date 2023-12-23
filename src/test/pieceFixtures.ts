@@ -42,19 +42,9 @@ export const standardPlayerPieces: EthPiece[] = [
     },
     isDead: false,
   },
-  {
-    pieceId: 4,
-    tokenId: RookTokens.STANDARD_ROOK,
-    pieceClass: PieceClass.ROOK,
-    pieceCoords: {
-      x: 7,
-      y: 0,
-    },
-    isDead: false,
-  },
   // BISHOPS
   {
-    pieceId: 5,
+    pieceId: 4,
     tokenId: BishopTokens.STANDARD_BISHOP,
     pieceClass: PieceClass.BISHOP,
     pieceCoords: {
@@ -63,19 +53,9 @@ export const standardPlayerPieces: EthPiece[] = [
     },
     isDead: false,
   },
-  {
-    pieceId: 6,
-    tokenId: BishopTokens.STANDARD_BISHOP,
-    pieceClass: PieceClass.BISHOP,
-    pieceCoords: {
-      x: 6,
-      y: 0,
-    },
-    isDead: false,
-  },
   // KNIGHTS
   {
-    pieceId: 7,
+    pieceId: 5,
     tokenId: KnightTokens.STANDARD_KNIGHT,
     pieceClass: PieceClass.KNIGHT,
     pieceCoords: {
@@ -84,19 +64,9 @@ export const standardPlayerPieces: EthPiece[] = [
     },
     isDead: false,
   },
-  {
-    pieceId: 8,
-    tokenId: KnightTokens.STANDARD_KNIGHT,
-    pieceClass: PieceClass.KNIGHT,
-    pieceCoords: {
-      x: 5,
-      y: 0,
-    },
-    isDead: false,
-  },
   // PAWNS
   {
-    pieceId: 9,
+    pieceId: 6,
     tokenId: PawnTokens.STANDARD_PAWN,
     pieceClass: PieceClass.PAWN,
     pieceCoords: {
@@ -106,7 +76,7 @@ export const standardPlayerPieces: EthPiece[] = [
     isDead: false,
   },
   {
-    pieceId: 10,
+    pieceId: 7,
     tokenId: PawnTokens.STANDARD_PAWN,
     pieceClass: PieceClass.PAWN,
     pieceCoords: {
@@ -116,7 +86,7 @@ export const standardPlayerPieces: EthPiece[] = [
     isDead: false,
   },
   {
-    pieceId: 11,
+    pieceId: 8,
     tokenId: PawnTokens.STANDARD_PAWN,
     pieceClass: PieceClass.PAWN,
     pieceCoords: {
@@ -126,7 +96,7 @@ export const standardPlayerPieces: EthPiece[] = [
     isDead: false,
   },
   {
-    pieceId: 12,
+    pieceId: 9,
     tokenId: PawnTokens.STANDARD_PAWN,
     pieceClass: PieceClass.PAWN,
     pieceCoords: {
@@ -136,41 +106,11 @@ export const standardPlayerPieces: EthPiece[] = [
     isDead: false,
   },
   {
-    pieceId: 13,
+    pieceId: 10,
     tokenId: PawnTokens.STANDARD_PAWN,
     pieceClass: PieceClass.PAWN,
     pieceCoords: {
       x: 4,
-      y: 1,
-    },
-    isDead: false,
-  },
-  {
-    pieceId: 14,
-    tokenId: PawnTokens.STANDARD_PAWN,
-    pieceClass: PieceClass.PAWN,
-    pieceCoords: {
-      x: 5,
-      y: 1,
-    },
-    isDead: false,
-  },
-  {
-    pieceId: 15,
-    tokenId: PawnTokens.STANDARD_PAWN,
-    pieceClass: PieceClass.PAWN,
-    pieceCoords: {
-      x: 6,
-      y: 1,
-    },
-    isDead: false,
-  },
-  {
-    pieceId: 16,
-    tokenId: PawnTokens.STANDARD_PAWN,
-    pieceClass: PieceClass.PAWN,
-    pieceCoords: {
-      x: 7,
       y: 1,
     },
     isDead: false,
@@ -185,7 +125,7 @@ export const exoticPlayerPieces: EthPiece[] = [
     pieceClass: PieceClass.KING,
     pieceCoords: {
       x: 4,
-      y: 0,
+      y: 7,
     },
     isDead: false,
   },
@@ -196,7 +136,7 @@ export const exoticPlayerPieces: EthPiece[] = [
     pieceClass: PieceClass.QUEEN,
     pieceCoords: {
       x: 3,
-      y: 0,
+      y: 7,
     },
     isDead: false,
   },
@@ -207,70 +147,70 @@ export const exoticPlayerPieces: EthPiece[] = [
     pieceClass: PieceClass.ROOK,
     pieceCoords: {
       x: 0,
-      y: 0,
-    },
-    isDead: false,
-  },
-  {
-    pieceId: 4,
-    tokenId: RookTokens.PAVISE_ROOK,
-    pieceClass: PieceClass.ROOK,
-    pieceCoords: {
-      x: 7,
-      y: 0,
+      y: 7,
     },
     isDead: false,
   },
   // BISHOPS
   {
-    pieceId: 5,
+    pieceId: 4,
     tokenId: BishopTokens.VARANGIAN_GUARD_BISHOP,
     pieceClass: PieceClass.BISHOP,
     pieceCoords: {
       x: 1,
-      y: 0,
-    },
-    isDead: false,
-  },
-  {
-    pieceId: 6,
-    tokenId: BishopTokens.VARANGIAN_GUARD_BISHOP,
-    pieceClass: PieceClass.BISHOP,
-    pieceCoords: {
-      x: 6,
-      y: 0,
+      y: 7,
     },
     isDead: false,
   },
   // KNIGHTS
   {
-    pieceId: 7,
+    pieceId: 5,
     tokenId: KnightTokens.SAGITTARII_KNIGHT,
     pieceClass: PieceClass.KNIGHT,
     pieceCoords: {
       x: 2,
-      y: 0,
-    },
-    isDead: false,
-  },
-  {
-    pieceId: 8,
-    tokenId: KnightTokens.SAGITTARII_KNIGHT,
-    pieceClass: PieceClass.KNIGHT,
-    pieceCoords: {
-      x: 5,
-      y: 0,
+      y: 7,
     },
     isDead: false,
   },
   // PAWNS
   {
-    pieceId: 9,
+    pieceId: 6,
     tokenId: PawnTokens.CONQUISTADORS_PAWN,
     pieceClass: PieceClass.PAWN,
     pieceCoords: {
       x: 0,
-      y: 1,
+      y: 6,
+    },
+    isDead: false,
+  },
+  {
+    pieceId: 7,
+    tokenId: PawnTokens.CONQUISTADORS_PAWN,
+    pieceClass: PieceClass.PAWN,
+    pieceCoords: {
+      x: 1,
+      y: 6,
+    },
+    isDead: false,
+  },
+  {
+    pieceId: 8,
+    tokenId: PawnTokens.CONQUISTADORS_PAWN,
+    pieceClass: PieceClass.PAWN,
+    pieceCoords: {
+      x: 2,
+      y: 6,
+    },
+    isDead: false,
+  },
+  {
+    pieceId: 9,
+    tokenId: PawnTokens.CONQUISTADORS_PAWN,
+    pieceClass: PieceClass.PAWN,
+    pieceCoords: {
+      x: 3,
+      y: 6,
     },
     isDead: false,
   },
@@ -279,68 +219,8 @@ export const exoticPlayerPieces: EthPiece[] = [
     tokenId: PawnTokens.CONQUISTADORS_PAWN,
     pieceClass: PieceClass.PAWN,
     pieceCoords: {
-      x: 1,
-      y: 1,
-    },
-    isDead: false,
-  },
-  {
-    pieceId: 11,
-    tokenId: PawnTokens.CONQUISTADORS_PAWN,
-    pieceClass: PieceClass.PAWN,
-    pieceCoords: {
-      x: 2,
-      y: 1,
-    },
-    isDead: false,
-  },
-  {
-    pieceId: 12,
-    tokenId: PawnTokens.CONQUISTADORS_PAWN,
-    pieceClass: PieceClass.PAWN,
-    pieceCoords: {
-      x: 3,
-      y: 1,
-    },
-    isDead: false,
-  },
-  {
-    pieceId: 13,
-    tokenId: PawnTokens.CONQUISTADORS_PAWN,
-    pieceClass: PieceClass.PAWN,
-    pieceCoords: {
       x: 4,
-      y: 1,
-    },
-    isDead: false,
-  },
-  {
-    pieceId: 14,
-    tokenId: PawnTokens.CONQUISTADORS_PAWN,
-    pieceClass: PieceClass.PAWN,
-    pieceCoords: {
-      x: 5,
-      y: 1,
-    },
-    isDead: false,
-  },
-  {
-    pieceId: 15,
-    tokenId: PawnTokens.CONQUISTADORS_PAWN,
-    pieceClass: PieceClass.PAWN,
-    pieceCoords: {
-      x: 6,
-      y: 1,
-    },
-    isDead: false,
-  },
-  {
-    pieceId: 16,
-    tokenId: PawnTokens.CONQUISTADORS_PAWN,
-    pieceClass: PieceClass.PAWN,
-    pieceCoords: {
-      x: 7,
-      y: 1,
+      y: 6,
     },
     isDead: false,
   },

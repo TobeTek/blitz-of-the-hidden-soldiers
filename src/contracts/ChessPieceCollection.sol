@@ -23,7 +23,19 @@ struct ChessPieceProperties {
     ChessPieceClass pieceClass;
 }
 
-/// @custom:security-contact katchyemma@gmail.com
+interface IChessCollection is IERC1155 {
+    function tokenProperties(
+        uint256
+    ) external view returns (ChessPieceProperties memory);
+
+    function isDefaultPiece(uint256) external view returns (bool);
+}
+
+/**
+ * @title ChessPieceCollection
+ * @dev ERC-1155 token contract representing chess pieces collectibles for the Blitz of the Hidden Soldiers (BoTHS) game
+ * @custom:security-contact katchyemma@gmail.com
+ */
 contract ChessPieceCollection is
     ERC1155,
     Ownable,
@@ -33,15 +45,33 @@ contract ChessPieceCollection is
 {
     mapping(uint256 => ChessPieceProperties) public tokenProperties;
 
-    constructor(address initialOwner) ERC1155("") Ownable(initialOwner) {}
+    address public defaultTokenOwner;
+
+    constructor(address initialOwner) ERC1155("") Ownable(initialOwner) {
+        defaultTokenOwner = initialOwner;
+    }
+
+    ///////////////////////////
+    //  Custom Functions
+    //////////////////////////
+    function setDefaultTokenOwner(address newOwner) public onlyOwner {
+        defaultTokenOwner = newOwner;
+    }
 
     function setPieceProperties(
         uint256 tokenId,
-        ChessPieceProperties memory pieceProperty
+        ChessPieceProperties calldata pieceProperty
     ) public onlyOwner {
         tokenProperties[tokenId] = pieceProperty;
     }
 
+    function isDefaultPiece(uint256 tokenId) public view returns (bool) {
+        return (balanceOf(defaultTokenOwner, tokenId) > 0);
+    }
+
+    ////////////////////////////////
+    // ERC1155 - Standard
+    ///////////////////////////////
     function setURI(string memory newuri) public onlyOwner {
         _setURI(newuri);
     }
@@ -71,8 +101,6 @@ contract ChessPieceCollection is
     ) public onlyOwner {
         _mintBatch(to, ids, amounts, data);
     }
-
-    // The following functions are overrides required by Solidity.
 
     function _update(
         address from,

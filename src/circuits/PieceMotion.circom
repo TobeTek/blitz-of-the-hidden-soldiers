@@ -53,7 +53,7 @@ template PieceMotion() {
     component pieceCommitment = HashPieceCommitment();
     pieceCommitment.pieceId <== pieceId;
     pieceCommitment.pieceType <== pieceType;
-    pieceCommitment.piecePosition <== pieceInitialPosition;
+    pieceCommitment.piecePosition <== pieceTargetPosition;
 
     publicCommitment <== pieceCommitment.out;
 }

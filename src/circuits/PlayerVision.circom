@@ -44,8 +44,8 @@ template ArrayHasDuplicatePositions(arraySize, nDims) {
         var elem2 = (i  + 1 ) % arraySize;
         for (var dim = 0; dim < nDims; dim++){
             isEqComp[i][dim] = IsEqual();
-            isEqComp[i][dim].in[0] <== arr[elem1][dim];
-            isEqComp[i][dim].in[1] <== arr[elem2][dim];
+            isEqComp[i][dim].in[0] <-- arr[elem1][dim];
+            isEqComp[i][dim].in[1] <-- arr[elem2][dim];
         }
     }
 
@@ -72,7 +72,7 @@ template ArrayHasDuplicatePositions(arraySize, nDims) {
 template PlayerVision(){
     var BOARD_WIDTH = 8;
     var BOARD_HEIGHT = 8;
-    var NUMBER_OF_PIECES = 16;
+    var NUMBER_OF_PIECES = 10;
     
     signal input pieceIds[NUMBER_OF_PIECES];
     signal input pieceTypes[NUMBER_OF_PIECES];
@@ -82,9 +82,9 @@ template PlayerVision(){
     signal output positionCommitment;
 
     // // Assert that there are no duplicates in board positions
-    // component duplicatePositions = ArrayHasDuplicatePositions(NUMBER_OF_PIECES, 2);
-    // duplicatePositions.arr <== piecePositions;
-    // duplicatePositions.out === 0;
+    component duplicatePositions = ArrayHasDuplicatePositions(NUMBER_OF_PIECES, 2);
+    duplicatePositions.arr <== piecePositions;
+    duplicatePositions.out === 0;
 
     // Determine the squares that are visible to a player
     component pieceVision[NUMBER_OF_PIECES];

@@ -18,7 +18,7 @@ interface IPlayerVision {
 interface IRevealBoardPosition {
     function verifyProof(
         uint256[24] calldata _proof,
-        uint256[64] calldata _pubSignals
+        uint256[40] calldata _pubSignals
     ) external view returns (bool);
 }
 

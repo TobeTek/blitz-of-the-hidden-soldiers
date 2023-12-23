@@ -9,7 +9,7 @@ include "../../node_modules/circomlib/circuits/comparators.circom";
 template RevealBoardPositions() {
     var BOARD_WIDTH = 8;
     var BOARD_HEIGHT = 8;
-    var NUMBER_OF_PIECES = 16;
+    var NUMBER_OF_PIECES = 10;
     
     signal input opponentVision[BOARD_WIDTH][BOARD_HEIGHT];
     signal input pieceIds[NUMBER_OF_PIECES];

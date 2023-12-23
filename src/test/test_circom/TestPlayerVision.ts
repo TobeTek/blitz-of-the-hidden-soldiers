@@ -1,8 +1,5 @@
-import {
-  standardPieceLayout,
-  playerVision,
-} from "@src/test/fixtures";
-import { PieceClass, NUMBER_OF_PIECES } from "@src/types";
+import { standardPieceLayout } from "@src/test/fixtures";
+import { PieceClass } from "@src/types";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 const chai = require("chai");
 const path = require("path");
@@ -16,7 +13,7 @@ const p = Scalar.fromString(
 const Fr = new F1Field(p);
 const expect = chai.expect;
 
-describe("RevealBoardPositions.circom", function () {
+describe("PlayerVision.circom", function () {
   this.timeout(100000);
   const pieceIds: number[] = standardPieceLayout.map((p) => p.pieceId);
   const pieceTypes: PieceClass[] = standardPieceLayout.map((p) => p.pieceClass);
@@ -24,16 +21,10 @@ describe("RevealBoardPositions.circom", function () {
     p.pieceCoords?.x,
     p.pieceCoords?.y,
   ]) as number[][];
-  let visiblePieceIds: number[] = [];
-  standardPieceLayout.forEach((piece) => {
-    if (playerVision[piece.pieceCoords?.x][piece.pieceCoords?.y]) {
-      visiblePieceIds.push(piece.pieceId);
-    }
-  });
 
   async function compileCircuitFixture() {
     const circuit = await wasm_tester(
-      path.join("src/circuits", "RevealBoardPositions.circom"),
+      path.join("src/circuits", "PlayerVision.circom"),
       { verbose: false }
     );
     return { circuit };
@@ -42,31 +33,21 @@ describe("RevealBoardPositions.circom", function () {
   it("Passes for valid input", async function () {
     const { circuit } = await loadFixture(compileCircuitFixture);
     const w = await circuit.calculateWitness({
-      opponentVision: playerVision,
       pieceIds,
       pieceTypes,
       piecePositions,
     });
-
-    let wVisiblePieceIds = w.slice(0, NUMBER_OF_PIECES),
-      wVisiblePiecePositions = w.slice(NUMBER_OF_PIECES, NUMBER_OF_PIECES * 2),
-      wVisiblePieceTypes = w.slice(NUMBER_OF_PIECES * 2);
-
-    for (const pieceId of visiblePieceIds) {
-      expect(wVisiblePieceIds.includes(Fr.e(pieceId))).to.be.true;
-    }
-
     await circuit.checkConstraints(w);
   });
 
   it("Fails for duplicate [input] piece positions", async function () {
-    let duplicatePositions = piecePositions.slice();
+    // Duplicate piecePositions
+    let duplicatePositions = [...piecePositions];
     duplicatePositions[1] = duplicatePositions[0];
 
+    const { circuit } = await loadFixture(compileCircuitFixture);
     try {
-      const { circuit } = await loadFixture(compileCircuitFixture);
       const w = await circuit.calculateWitness({
-        opponentVision: playerVision,
         pieceIds,
         pieceTypes,
         piecePositions: duplicatePositions,
@@ -76,7 +57,7 @@ describe("RevealBoardPositions.circom", function () {
     } catch (err: any) {
       expect(err.message)
         .to.contain("Assert Failed")
-        .to.contain("Error in template RevealBoardPosition");
+        .to.contain("Error in template PlayerVision");
     }
   });
 });
