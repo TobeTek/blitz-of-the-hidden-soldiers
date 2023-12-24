@@ -505,25 +505,6 @@ async function playMoves(
     const wKingPieceId = 1;
     const wQueenPieceId = 2;
     const wKnightPieceId = 5;
-
-    // Check to make sure the right pieces were captured
-    console.log(
-      "bKING",
-      await chessGame.capturedPieces(playerBlack, bKingPieceId),
-      "bQUEEN",
-      await chessGame.capturedPieces(playerBlack, bQueenPieceId),
-      "bKNIGHT",
-      await chessGame.capturedPieces(playerBlack, bKnightPieceId)
-    );
-
-    console.log(
-      "wKING",
-      await chessGame.capturedPieces(playerWhite, wKingPieceId),
-      "wQUEEN",
-      await chessGame.capturedPieces(playerWhite, wQueenPieceId),
-      "wKNIGHT",
-      await chessGame.capturedPieces(playerWhite, wKnightPieceId)
-    );
   }
 }
 

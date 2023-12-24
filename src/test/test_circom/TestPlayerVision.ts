@@ -1,6 +1,6 @@
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { standardPieceLayout } from "@src/test/fixtures";
 import { PieceClass } from "@src/types";
-import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 const chai = require("chai");
 const path = require("path");
 const wasm_tester = require("circom_tester").wasm;
@@ -41,7 +41,6 @@ describe("PlayerVision.circom", function () {
   });
 
   it("Fails for duplicate [input] piece positions", async function () {
-    // Duplicate piecePositions
     let duplicatePositions = [...piecePositions];
     duplicatePositions[1] = duplicatePositions[0];
 

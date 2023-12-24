@@ -16,80 +16,80 @@ export const standardPieceLayout: Piece[] = [
     pieceId: 1,
     pieceClass: PieceClass.PAWN,
     pieceCoords: {
-      x: 0,
-      y: 1,
+      x: 1,
+      y: 2,
     },
   },
   {
     pieceId: 2,
     pieceClass: PieceClass.PAWN,
     pieceCoords: {
-      x: 1,
-      y: 1,
+      x: 2,
+      y: 2,
     },
   },
   {
     pieceId: 3,
     pieceClass: PieceClass.PAWN,
     pieceCoords: {
-      x: 2,
-      y: 1,
+      x: 3,
+      y: 2,
     },
   },
   {
     pieceId: 4,
     pieceClass: PieceClass.PAWN,
     pieceCoords: {
-      x: 3,
-      y: 1,
+      x: 4,
+      y: 2,
     },
   },
   {
     pieceId: 5,
     pieceClass: PieceClass.PAWN,
     pieceCoords: {
-      x: 4,
+      x: 5,
+      y: 2,
+    },
+  },
+  {
+    pieceId: 6,
+    pieceClass: PieceClass.ROOK,
+    pieceCoords: {
+      x: 6,
+      y: 2,
+    },
+  },
+  {
+    pieceId: 7,
+    pieceClass: PieceClass.KNIGHT,
+    pieceCoords: {
+      x: 1,
+      y: 1,
+    },
+  },
+  {
+    pieceId: 8,
+    pieceClass: PieceClass.BISHOP,
+    pieceCoords: {
+      x: 2,
       y: 1,
     },
   },
   {
     pieceId: 9,
-    pieceClass: PieceClass.ROOK,
+    pieceClass: PieceClass.QUEEN,
     pieceCoords: {
-      x: 0,
-      y: 0,
+      x: 3,
+      y: 1,
     },
   },
   {
     pieceId: 10,
-    pieceClass: PieceClass.KNIGHT,
-    pieceCoords: {
-      x: 1,
-      y: 0,
-    },
-  },
-  {
-    pieceId: 11,
-    pieceClass: PieceClass.BISHOP,
-    pieceCoords: {
-      x: 2,
-      y: 0,
-    },
-  },
-  {
-    pieceId: 12,
-    pieceClass: PieceClass.QUEEN,
-    pieceCoords: {
-      x: 3,
-      y: 0,
-    },
-  },
-  {
-    pieceId: 13,
     pieceClass: PieceClass.KING,
     pieceCoords: {
       x: 4,
-      y: 0,
+      y: 1,
     },
   },
 ];

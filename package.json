@@ -25,6 +25,7 @@
     "circomlibjs": "^0.1.7",
     "dotenv": "^16.3.1",
     "ffjavascript": "^0.2.62",
+    "firebase": "^10.7.1",
     "hardhat-circom": "^3.3.2",
     "hardhat-deploy": "^0.11.45",
     "hardhat-gas-reporter": "^1.0.9",

@@ -1,6 +1,6 @@
-import { mimcHashMulti } from "@src/utils/hashers";
-import { Coordinate, Piece, PieceClass } from "@src/types";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+import { Coordinate, Piece, PieceClass } from "@src/types";
+import { mimcHashMulti } from "@src/utils/hashers";
 const chai = require("chai");
 const path = require("path");
 const wasm_tester = require("circom_tester").wasm;
@@ -131,3 +131,4 @@ describe("PieceMotion.circom", function () {
     }
   });
 });
+

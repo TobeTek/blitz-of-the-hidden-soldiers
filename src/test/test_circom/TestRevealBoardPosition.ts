@@ -1,7 +1,4 @@
-import {
-  standardPieceLayout,
-  playerVision,
-} from "@src/test/fixtures";
+import { standardPieceLayout, playerVision } from "@src/test/fixtures";
 import { exoticPlayerPieces, standardPlayerPieces } from "../pieceFixtures";
 import { PieceClass, NUMBER_OF_PIECES } from "@src/types";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
@@ -53,8 +50,6 @@ describe("RevealBoardPositions.circom", function () {
       wVisiblePiecePositions = w.slice(NUMBER_OF_PIECES, NUMBER_OF_PIECES * 2),
       wVisiblePieceTypes = w.slice(NUMBER_OF_PIECES * 2);
 
-    console.log("wVisiblePieceIds", wVisiblePieceIds);
-    console.log("visiblePieceIds", visiblePieceIds);
     for (const pieceId of visiblePieceIds) {
       expect(wVisiblePieceIds.includes(Fr.e(pieceId))).to.be.true;
     }
