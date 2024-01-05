@@ -224,7 +224,7 @@ contract ChessGame is ChessGameState {
             "Player has already placed pieces"
         );
         
-        uint[] memory pieceIds;
+        uint256[] memory pieceIds = new uint256[](PIECES_PER_PLAYER);
 
         for (uint i = 0; i < pieces.length; i++) {
             Piece calldata piece = pieces[i];
