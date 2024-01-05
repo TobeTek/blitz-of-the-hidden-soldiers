@@ -6,7 +6,7 @@ import {
   QueenTokens,
   RookTokens,
   PawnTokens,
-} from "./fixtures";
+} from "src/types/tokens";
 
 export const standardPlayerPieces: EthPiece[] = [
   // KING

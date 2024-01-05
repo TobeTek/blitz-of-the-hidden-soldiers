@@ -22,4 +22,4 @@ const deployRevealBoardPositionsPlonkVerifier: DeployFunction = async (
 };
 
 export default deployRevealBoardPositionsPlonkVerifier;
-deployRevealBoardPositionsPlonkVerifier.tags = ["all", "circom_verifiers"];
+deployRevealBoardPositionsPlonkVerifier.tags = ["all", "circom_verifiers", "mainnet"];

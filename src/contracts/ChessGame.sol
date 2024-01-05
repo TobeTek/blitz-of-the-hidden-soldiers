@@ -142,12 +142,19 @@ contract ChessGame is ChessGameState {
     ////////////////////////////////
 
     /**
+     * @dev Emitted when a player places all their pieces on the chess board.
+     * @param player The address of the player making the move
+     * @param pieceIds A list of piece IDs for the player.
+     */
+    event PlayerHasPlacedPieces(address indexed player, uint[] pieceIds);
+
+    /**
      * @dev Emitted when a player makes a move in the chess game.
      * @param player The address of the player making the move.
      * @param move The details of the chess move.
      * @param playerIsWhite A boolean indicating whether the player is controlling the white pieces.
      */
-    event MoveMade(address player, ChessMove move, bool playerIsWhite);
+    event MoveMade(address indexed game, address indexed player, ChessMove move, bool playerIsWhite);
 
     /**
      * @dev Emitted when a player reveals the position of a chess piece.
@@ -156,8 +163,9 @@ contract ChessGame is ChessGameState {
      * @param coord The coordinates of the revealed chess piece on the board.
      */
     event PiecePositionRevealed(
-        address player,
-        uint256 pieceId,
+        address indexed game,
+        address indexed player,
+        uint256 indexed pieceId,
         Coordinate coord
     );
 
@@ -215,6 +223,8 @@ contract ChessGame is ChessGameState {
             !playerHasPlacedPieces[msg.sender],
             "Player has already placed pieces"
         );
+        
+        uint[] memory pieceIds;
 
         for (uint i = 0; i < pieces.length; i++) {
             Piece calldata piece = pieces[i];
@@ -222,6 +232,7 @@ contract ChessGame is ChessGameState {
 
             // Sanity check: Piece ID should not be zero
             require(piece.pieceId != 0, "Piece ID cannot be zero");
+            pieceIds[i] = piece.pieceId;
 
             // Store the piece information
             playerTokenIds[msg.sender].push(tokenId);
@@ -249,6 +260,7 @@ contract ChessGame is ChessGameState {
         }
 
         // Mark the player as having placed their pieces
+        emit PlayerHasPlacedPieces(msg.sender, pieceIds);
         playerHasPlacedPieces[msg.sender] = true;
     }
 
@@ -321,6 +333,7 @@ contract ChessGame is ChessGameState {
 
         // Emit the MoveMade event
         emit MoveMade(
+            address(this),
             msg.sender,
             ChessMove(pieceId, publicCommitment),
             isPlayerWhite(msg.sender)
@@ -397,12 +410,17 @@ contract ChessGame is ChessGameState {
             uint xCoord = _pubSignals[row];
             uint yCoord = _pubSignals[col];
 
+            require(
+                (xCoord > 0) && (yCoord > 0),
+                "Piece coordinates must be greater than 0"
+            );
+
             Coordinate memory pieceCoord = Coordinate(xCoord, yCoord);
             playerPieces[msg.sender][pieceId].pieceCoords = pieceCoord;
             pieceCoordinates[msg.sender][xCoord][yCoord] = pieceId;
 
             // Emit PiecePositionRevealed event
-            emit PiecePositionRevealed(msg.sender, pieceId, pieceCoord);
+            emit PiecePositionRevealed(address(this), msg.sender, pieceId, pieceCoord);
         }
 
         // Mark that the player has reported their positions

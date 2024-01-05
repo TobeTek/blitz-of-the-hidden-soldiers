@@ -8,15 +8,18 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 
 enum ChessPieceClass {
+    // Standard Pieces
     KING,
     QUEEN,
-    PAWN,
-    ROOK,
     BISHOP,
     KNIGHT,
-    // Exotics
+    ROOK,
+    PAWN,
+    // Exotic
     TREBUCHET
 }
+
+string constant PIECE_COLLECTION_URI = "https://firebasestorage.googleapis.com/v0/b/blitz-of-the-hidden-soldiers.appspot.com/o/{id}?alt=media";
 
 struct ChessPieceProperties {
     uint256 tokenId; // Generally the same as the tokenId
@@ -93,13 +96,18 @@ contract ChessPieceCollection is
         _mint(account, id, amount, data);
     }
 
-    function mintBatch(
+    function mintBatchWithProperties(
         address to,
         uint256[] memory ids,
         uint256[] memory amounts,
-        bytes memory data
+        bytes memory data,
+        ChessPieceProperties[] calldata properties
     ) public onlyOwner {
         _mintBatch(to, ids, amounts, data);
+        for (uint i = 0; i < ids.length; i++) {
+            uint tokenId = ids[i];
+            tokenProperties[tokenId] = properties[i];
+        }
     }
 
     function _update(

@@ -21,6 +21,11 @@ export type EthPiece = Piece & {
   isDead: boolean;
 };
 
+export type ChessPieceProperties ={
+  tokenId: number;
+  pieceClass: PieceClass;
+}
+
 export async function calculatePublicCommitment(p: EthPiece): Promise<string> {
   return await mimcHashMulti([
     p.pieceId,

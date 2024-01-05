@@ -5,10 +5,10 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "./ChessGame.sol";
 import "./ChessPieceCollection.sol";
 
+import "hardhat/console.sol";
+
 import {ChessPieceFormation} from "./ChessPieceFormations.sol";
-import {ChessPieceProperties, ChessPieceClass, IChessCollection } from "./ChessPieceCollection.sol";
-
-
+import {ChessPieceProperties, ChessPieceClass, IChessCollection} from "./ChessPieceCollection.sol";
 
 /**
  * @dev Represents the selection of a chess piece, including its class, token ID, and count.
@@ -38,12 +38,20 @@ contract GameManager is ChessPieceFormation {
     /**
      * @dev Emitted when a new chess game is created between players.
      */
-    event GameCreated();
+    event GameCreated(
+        address gameAddress,
+        address indexed playerWhite,
+        address indexed playerBlack
+    );
 
     /**
      * @dev Emitted when a player has selected their chess pieces for the game.
      */
-    event PlayerSelectedPieces();
+    event PlayerSelectedPieces(
+        address indexed gameAddress,
+        address indexed player,
+        PieceSelection[] selection
+    );
 
     // Admin address
     address public owner;
@@ -85,7 +93,14 @@ contract GameManager is ChessPieceFormation {
         // Increment active game counts for both players
         playerActiveGames[playerWhite]++;
         playerActiveGames[playerBlack]++;
+        console.log(
+            "Creating game: gameAddress: %s playerWhite: %s playerBlack %s",
+            address(game),
+            playerWhite,
+            playerBlack
+        );
 
+        emit GameCreated(address(game), playerWhite, playerBlack);
         return address(game);
     }
 
@@ -111,6 +126,8 @@ contract GameManager is ChessPieceFormation {
         // Set the player's piece allocation in the specified chess game
         ChessGame game = ChessGame(gameAddress);
         game.setPlayerAllocation(msg.sender, pieces);
+
+        emit PlayerSelectedPieces(gameAddress, msg.sender, pieces);
     }
 
     /**
@@ -144,15 +161,17 @@ contract GameManager is ChessPieceFormation {
             // We only check if either the player as an entity has that number of pieces.
             // We can also check if a combination of both the player's balance and the default pieceset
             // can meet the desired number, however, generally, we want to prevent such 'mixing' of ownership
-            uint256 lockedPlayerTokens = lockedTokens[player][piece.tokenId];
-            bool playerHasPieces = (playerBalance + lockedPlayerTokens) >=
-                piece.count;
-            if (!playerHasPieces) {
+            if (!chessCollection.isDefaultPiece(piece.tokenId)) {
+                uint256 lockedPlayerTokens = lockedTokens[player][
+                    piece.tokenId
+                ];
+                bool playerHasPieces = (playerBalance + lockedPlayerTokens) >=
+                    piece.count;
                 require(
-                    chessCollection.isDefaultPiece(piece.tokenId),
+                    playerHasPieces,
                     "User must have the specified pieceType or it must be a default piece available to everyone"
                 );
-            } else {
+
                 // Lock the pieces to prevent them from being sold while in play
                 if (lockedPlayerTokens < piece.count) {
                     lockPlayerTokens(
@@ -299,4 +318,10 @@ contract GameManager is ChessPieceFormation {
         );
         _;
     }
+
+    // * receive function
+    receive() external payable {}
+
+    // * fallback function
+    fallback() external {}
 }

@@ -27,7 +27,7 @@ Try running some of the following tasks:
 1. To compile all `circom` circuits and generate corresponding `zkeys`:
 
 ```shell
-./scripts/check_circom.sh
+./scripts/compile_circom.sh
 ```
 
 2. General HardHat/Smart Contract Commands
